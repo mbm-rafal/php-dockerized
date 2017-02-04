@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -my \
   php5-mcrypt \
   php5-sqlite \
   php5-xdebug \
-  php-apc
+  php-apc \
+  openssl
 
 # Ensure that PHP5 FPM is run as root.
 RUN sed -i "s/user = www-data/user = root/" /etc/php5/fpm/pool.d/www.conf
@@ -48,9 +49,20 @@ RUN echo deb http://dl.hhvm.com/debian jessie main | tee /etc/apt/sources.list.d
 RUN apt-get update && apt-get install -y hhvm
 
 # Add configuration files
+RUN mkdir /etc/nginx/ssl
+
 COPY conf/nginx.conf /etc/nginx/
 COPY conf/supervisord.conf /etc/supervisor/conf.d/
 COPY conf/php.ini /etc/php5/fpm/conf.d/40-custom.ini
+COPY conf/ssl /etc/nginx/ssl
+
+################################################################################
+# Create SSL
+################################################################################
+RUN  openssl req \
+     -newkey rsa:4096 -nodes -sha256 -keyout /etc/nginx/ssl/ssl.key \
+     -x509 -days 365 -out /etc/nginx/ssl/ssl.crt \
+     -subj "/CN=*.local.dev"
 
 ################################################################################
 # Volumes

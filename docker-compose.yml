@@ -1,3 +1,5 @@
+# version: '2'
+
 front:
   build: .
   ports:
@@ -5,47 +7,40 @@ front:
     - "443:443"
     - "9000:9000"
   links:
-    - mysql:mysql
+    - mariadb:mysql
     - mongo:mongo
     - memcached:memcached
     - redis:redis
-    - elasticsearch:elasticsearch
-    - rabbitmq:rabbitmq
   volumes:
     - ./www:/var/www
     - ./sites:/etc/nginx/conf.d
     - ./logs:/var/log/supervisor
 
-mysql:
-  image: mysql
+
+mariadb:
+  image: mariadb
   ports:
     - "3306:3306"
   environment:
     MYSQL_ROOT_PASSWORD: password
+  volumes:
+    - ./storage/mysql:/var/lib/mysql
 
 mongo:
   image: mongo
   ports:
     - "27017:27017"
+  volumes:
+    - ./conf/mongod.conf:/etc/mongod.conf
+    - ./storage/mongodb:/data/db
+  command: --config /etc/mongod.conf
 
 memcached:
   image: memcached
   ports:
-    - "11211:11211"
+    - "11121:11121"
 
 redis:
   image: redis
   ports:
     - "6379:6379"
-
-elasticsearch:
-  image: elasticsearch
-  ports:
-    - "9200:9200"
-    - "9300:9300"
-
-rabbitmq:
-  image: rabbitmq:3.6.1-management
-  ports:
-    - "15672:15672"
-    - "5672:5672"
